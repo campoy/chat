@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/golang/net/websocket"
 )
 
 /*
@@ -27,11 +29,29 @@ const listenAddr = "localhost:8080"
 
 func main() {
 	http.HandleFunc("/", handler)
+	http.Handle("/socket", websocket.Handler(socketHandler))
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	rootTemplate.Execute(w, listenAddr)
+}
+
+type socket struct {
+	io.ReadWriteCloser
+	done chan bool
+}
+
+func (s *socket) Close() error {
+	log.Printf("connection %p closed", s)
+	s.done <- true
+	return nil
+}
+
+func socketHandler(conn *websocket.Conn) {
+	s := socket{conn, make(chan bool)}
+	go match(&s)
+	<-s.done
 }
 
 var partners = make(chan io.ReadWriteCloser)
