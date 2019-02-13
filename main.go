@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
+	"net/http"
 )
 
+/*
 func main() {
 	l, err := net.Listen("tcp", ":4000")
 	if err != nil {
@@ -20,10 +21,22 @@ func main() {
 		go match(conn)
 	}
 }
+*/
 
-var partners = make(chan net.Conn)
+const listenAddr = "localhost:8080"
 
-func match(conn net.Conn) {
+func main() {
+	http.HandleFunc("/", handler)
+	log.Fatal(http.ListenAndServe(listenAddr, nil))
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	rootTemplate.Execute(w, listenAddr)
+}
+
+var partners = make(chan io.ReadWriteCloser)
+
+func match(conn io.ReadWriteCloser) {
 	fmt.Fprintln(conn, "Looking for a partner ...")
 	select {
 	case partners <- conn:
@@ -33,7 +46,7 @@ func match(conn net.Conn) {
 	}
 }
 
-func chat(a, b net.Conn) {
+func chat(a, b io.ReadWriteCloser) {
 	fmt.Fprintln(a, "We found a partner")
 	fmt.Fprintln(b, "We found a partner")
 	errc := make(chan error, 1)
@@ -46,7 +59,7 @@ func chat(a, b net.Conn) {
 	b.Close()
 }
 
-func copy(a, b net.Conn, errc chan<- error) {
+func copy(a, b io.ReadWriteCloser, errc chan<- error) {
 	_, err := io.Copy(a, b)
 	errc <- err
 }
