@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -17,6 +18,6 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Fprintln(conn, "Hello, net")
-		conn.Close()
+		io.Copy(conn, conn)
 	}
 }
