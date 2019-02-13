@@ -36,6 +36,17 @@ func match(conn net.Conn) {
 func chat(a, b net.Conn) {
 	fmt.Fprintln(a, "We found a partner")
 	fmt.Fprintln(b, "We found a partner")
-	go io.Copy(a, b)
-	go io.Copy(b, a)
+	errc := make(chan error, 1)
+	go copy(a, b, errc)
+	go copy(b, a, errc)
+	if err := <-errc; err != nil {
+		log.Printf("Error chatting: %v", err)
+	}
+	a.Close()
+	b.Close()
+}
+
+func copy(a, b net.Conn, errc chan<- error) {
+	_, err := io.Copy(a, b)
+	errc <- err
 }
