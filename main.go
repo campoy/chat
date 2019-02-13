@@ -18,6 +18,6 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Fprintln(conn, "Hello, net")
-		io.Copy(conn, conn)
+		go io.Copy(conn, conn)
 	}
 }
