@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net"
 )
@@ -18,6 +17,10 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Fprintln(conn, "Hello, net")
-		go io.Copy(conn, conn)
+		go chat(conn)
 	}
+}
+
+func chat(conn net.Conn) {
+	// how?
 }
