@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 )
 
 var partners = make(chan io.ReadWriteCloser)
@@ -15,15 +16,19 @@ func match(conn io.ReadWriteCloser) {
 		// the other goroutine won and we can finish
 	case p := <-partners:
 		chat(conn, p)
+	case <-time.After(5 * time.Second):
+		log.Println("timeout, chat to bot")
+		chat(newBot(), conn)
 	}
 }
 
 func chat(a, b io.ReadWriteCloser) {
 	fmt.Fprintln(a, "We found a partner")
 	fmt.Fprintln(b, "We found a partner")
+
 	errc := make(chan error, 1)
-	go copy(a, b, errc)
-	go copy(b, a, errc)
+	go copy(a, chain.SpyOn(b), errc)
+	go copy(b, chain.SpyOn(a), errc)
 	if err := <-errc; err != nil {
 		log.Printf("Error chatting: %v", err)
 	}
@@ -31,7 +36,7 @@ func chat(a, b io.ReadWriteCloser) {
 	b.Close()
 }
 
-func copy(a, b io.ReadWriteCloser, errc chan<- error) {
+func copy(a io.Writer, b io.Reader, errc chan<- error) {
 	_, err := io.Copy(a, b)
 	errc <- err
 }
