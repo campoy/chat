@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"time"
@@ -22,7 +23,9 @@ func newBot() io.ReadWriteCloser {
 
 func (b bot) Write(p []byte) (int, error) {
 	log.Printf("bot received: %s", p)
-	go b.speak()
+	if len(bytes.TrimSpace(p)) > 0 {
+		go b.speak()
+	}
 	return len(p), nil
 }
 
