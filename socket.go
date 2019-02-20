@@ -3,7 +3,7 @@ package main
 import (
 	"io"
 
-	"github.com/golang/net/websocket"
+	"golang.org/x/net/websocket"
 )
 
 type socket struct {
