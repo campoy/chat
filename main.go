@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/golang/net/websocket"
+	"golang.org/x/net/websocket"
 )
 
 func tcpListen() {
